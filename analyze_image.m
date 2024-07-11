@@ -1,4 +1,10 @@
 %x = analyze_image('/Users/benjaminblonder/Documents/rmbl/rmbl 2016/rmbl thermal ecology/thermal data/baldy 28 jul/baldy_partone_2016_07_28.mat', '/Users/benjaminblonder/Documents/rmbl/rmbl 2016/rmbl thermal ecology/thermal data/baldy 28 jul/visible/ERIUMB1-1 (0142).jpg','~/Downloads/out/');
+
+%x = analyze_image("jcg_test_output.mat", '/Users/joe/Desktop/flir_thermal_control-jcg-update/test_radiometric_2/out_200928-165122_0-visible.png',"test_out_folder")
+
+%x = analyze_image("/Users/joe/Desktop/thermal_test_run/jcg_test_output.mat", '/Users/joe/Desktop/thermal_test_run/out_201008-150019_0-visible.png',"test_out_folder/")
+%x = analyze_image('/Users/joe/Desktop/licor_thermal_data/results_200731-103709/licor_6800_1.mat', "/Users/joe/Desktop/licor_thermal_data/results_200731-103709/out_200731-103724_0-visible.png", "/Users/jose/Desktop/licor_thermal_data/6800_side")
+
 function [image_thermal_representative] = analyze_image(file_thermal_mat, file_visible, folder_out)
     scalefactor = 2;
 
@@ -19,7 +25,7 @@ function [image_thermal_representative] = analyze_image(file_thermal_mat, file_v
     % preprocess thermal image
     image_thermal_representative = double(data_thermal.Tkelvin_aligned_calibrated(:,:,floor(num_files/3)))/100;
     image_thermal_representative = imresize(image_thermal_representative, scalefactor);
-    image_thermal_representative = rescale_image_quantile(image_thermal_representative, 0.01, 0.99);
+    image_thermal_representative = rescale_image_quantile(image_thermal_representative, 0.05, 0.95);
     %image_thermal_mean = adapthisteq(image_thermal_mean, 'NumTiles',[8 8]);
     image_thermal_representative = imsharpen(image_thermal_representative,'Radius',2,'Amount',1.5);
     image_thermal_representative = ind2rgb(floor(255*image_thermal_representative),hot(255));
@@ -83,7 +89,8 @@ function [image_thermal_representative] = analyze_image(file_thermal_mat, file_v
                 ans_roi = MFquestdlg([0.5 0.5], 'Keep this ROI?','Prompt','yes','no','finished','yes');
                 if (strcmp(ans_roi,'yes')==1)
                     [~, fp, ~] = fileparts(file_visible);
-                    filename_output = inputdlg('Enter sample name','Input',1,{fp});
+                    disp(fp);
+                    filename_output = inputdlg('Enter sample name','Input',1,fp);
                     filename_output = filename_output{1};
 
                     if (~isempty(filename_output))

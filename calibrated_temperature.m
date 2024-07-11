@@ -5,9 +5,11 @@ function [Tkelvin] = calibrated_temperature(lPixval, m_RelHum, m_AtmTemp, m_Obje
     [m_AtmTao, m_K1, m_K2] = doUpdateCalcConst(m_RelHum, m_AtmTemp, m_ObjectDistance, m_X, m_alpha1, m_beta1, m_alpha2, m_beta2, m_Emissivity, m_ExtOptTransm, m_AmbTemp, m_ExtOptTemp, m_B, m_F, m_R);
     %fprintf('tao: %.2f k1: %.2f k2: %.2f\n', m_AtmTao, m_K1, m_K2)
 
+    lPixval = double(lPixval);
     dPow = (lPixval - m_J0) / m_J1;
     dSig = m_K1 * dPow - m_K2;
     dbl_reg = m_R ./ dSig + m_F;
+    
     
     if (m_F <= 1.0)
         dbl_reg(dbl_reg < ASY_SAFEGUARD) = ASY_SAFEGUARD;

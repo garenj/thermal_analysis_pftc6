@@ -1,6 +1,13 @@
 % [cm mm aa stats]= align_thermal('/Users/benjaminblonder/Documents/rmbl/rmbl 2016/rmbl thermal ecology/thermal data/pfeiler jun 27/thermal/combined/', 2, 1, 0.5, 200);
 
+% JCG Test
+% [cm mm aa stats]= align_thermal('/Users/joe/Desktop/flir_thermal_control-jcg-update/test_radiometric_2/', 2, 1, 0.01, 1);
+% [cm mm aa stats]= align_thermal('/Users/joe/Desktop/thermal_test_run/', 12, 1, 0.01, 1);
 
+% interval_keyframes
+% interval_frames
+% threshold
+% keyframe_id
 function [correctedMean movMean array_aligned stats] = align_thermal(folder_in_thermal_timeseries, interval_keyframes, interval_frames, threshold, keyframe_id)
     addpath('npy-matlab-master');
      
@@ -10,8 +17,11 @@ function [correctedMean movMean array_aligned stats] = align_thermal(folder_in_t
         interval_frames = 1;
     end
 
+    
     % load in thermal images
-    files_thermal_timeseries_npy = dir([folder_in_thermal_timeseries '*.npy']);
+    %files_thermal_timeseries_npy = dir([folder_in_thermal_timeseries '*.npy']);
+    files_thermal_timeseries_npy = dir(strcat(folder_in_thermal_timeseries, "*.npy"))
+    
     
     keepfiles = ones([length(files_thermal_timeseries_npy) 1]);
     for i=1:length(files_thermal_timeseries_npy)
@@ -75,26 +85,30 @@ function [correctedMean movMean array_aligned stats] = align_thermal(folder_in_t
                 imgB_untransformed = imgB;
                 imgB = imgaussfilt(rescale_image_quantile(imgB, 0.01, 0.99),2);
                 movMean = movMean + imgB;
+                %disp(imgA);
+                %disp(imgB);
 
                 % do stabilization transform and warp
-                H = cvexEstStabilizationTform(imgA,imgB,threshold);
-                HsRt = cvexTformToSRT(H);
-                Hcumulative = HsRt * Hcumulative;
-                imgBp = imwarp(imgB,affine2d(Hcumulative),'OutputView',imref2d(size(imgB)));
+                %H = cvexEstStabilizationTform(imgA,imgB,threshold);
+                %HsRt = cvexTformToSRT(H);
+                %Hcumulative = HsRt * Hcumulative;
+                %imgBp = imwarp(imgB,affine2d(Hcumulative),'OutputView',imref2d(size(imgB)));
                 % add new value to mean
+                imgBp = imgB; % THIS GETS RID OF THE STABILIZATION
                 correctedMean = correctedMean + imgBp;
                 
                 transform_current = Hcumulative;
                 
                 count_average = count_average + 1;
+                fprintf('%d', count_average);
             end
         end
         
         im_current = double(readNPY(fn));
 
         % transform the raw image too
-        im_current_warped = imwarp(im_current,affine2d(transform_current),'OutputView',imref2d(size(im_current)));         
-        
+        %im_current_warped = imwarp(im_current,affine2d(transform_current),'OutputView',imref2d(size(im_current)));         
+        im_current_warped = im_current; % THIS GETS RID OF THE STABILIZATION
         imshow(rescale_image_quantile(im_current_warped, 0.05, 0.95));
         % reconvert back to uint16
         array_aligned(:,:,i) = uint16(im_current_warped);
@@ -107,6 +121,7 @@ function [correctedMean movMean array_aligned stats] = align_thermal(folder_in_t
     movMean = movMean/(count_average);
 
     fprintf('\n')
+    fprintf('%d', count_average)
 end
 
 
